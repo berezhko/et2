@@ -1,0 +1,22 @@
+plot_dir: '${project_dir}/data/plot_function/${station}'
+outp_dir: '${project_dir}/data/Выход/${station}'
+
+settings_dir: '${project_dir}/config/${station}/'
+scheme_dir: '${project_dir}/data/input_data/${station}/'
+
+cable_set_file: ''
+
+SET_NAME_BY_ORDER: false
+START_NUMBER: 100
+CALC_LENGTH: false
+READ_LENGTH_FROM_FILE: false
+CABINE_FILE: ''
+
+cabines:
+  generate_equipment_config: false
+  reverse_wires_connection: false
+  project_dir: '${project_dir}'
+  main_config: '${project_dir}/config/${station}/Панели/Настройки Панелей.yaml'
+  cabine_config: '${project_dir}/config/${station}/Панели/${cabines.cabine_num}/Настройки ${cabines.cabine_name}.yaml'
+  graph_dir: '${project_dir}/data/graph_data/${station}'
+  autocad_template_dir: '${project_dir}/config/Устройства/Шаблоны Autocad/'

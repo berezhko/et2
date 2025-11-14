@@ -1,0 +1,4 @@
+[flake8]
+ignore = E402, W503, E501, E203
+exclude = .git, __pycache__, .ipynb_checkpoints, .mypy_cache, .vs
+max-line-length = 120

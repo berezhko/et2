@@ -1,0 +1,19 @@
+pandas
+numpy
+networkx
+jupyterlab
+openpyxl
+scipy
+OmegaConf
+tabulate
+matplotlib # Для функции networkx.draw()
+mypy
+pandas-stubs
+pycallgraph2
+black[jupyter]
+flake8
+jupyterlab_git
+mypy-extensions
+#voila
+streamlit
+tabulate
