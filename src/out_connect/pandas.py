@@ -10,6 +10,8 @@ from src.out_connect.clemmnic import ClemmnicList
 from src.out_connect.clemmnic import Clemmnic
 from src.out_connect.clemmnic import check_intersection_clemmnic
 
+from src.misc import safe_to_excel
+from src.misc import my_str
 from src.yaml import read_yaml_config
 
 
@@ -192,30 +194,30 @@ def read_project_csv_data(file_name):
 
 def read_project_yaml_data(file_name):
     dtypes_main = {
-        'Real Name': ('Имя', str),
-        'Layer': ('Слой', str),
+        'Real Name': ('Имя', my_str),
+        'Layer': ('Слой', my_str),
         'X': ('Положение X', float),
         'Y': ('Положение Y', float),
     }
     dtypes_attribs = {
-        'ВН_ЖИЛА': ('ВН_ЖИЛА', str),
-        'КЛЕММА': ('КЛЕММА', str),
-        'УСТРОЙСТВО': ('УСТРОЙСТВО', str),
-        'ШКАФ': ('ШКАФ', str),
-        'ЖИЛА': ('ЖИЛА', str),
-        'КАБЕЛЬ': ('КАБЕЛЬ', str),
-        'КЛЕММНИК': ('КЛЕММНИК', str),
-        'КАБЕЛЬ2': ('КАБЕЛЬ2', str),
-        'ЖИЛА2': ('ЖИЛА2', str),
-        'ТИП': ('ТИП', str),
+        'ВН_ЖИЛА': ('ВН_ЖИЛА', my_str),
+        'КЛЕММА': ('КЛЕММА', my_str),
+        'УСТРОЙСТВО': ('УСТРОЙСТВО', my_str),
+        'ШКАФ': ('ШКАФ', my_str),
+        'ЖИЛА': ('ЖИЛА', my_str),
+        'КАБЕЛЬ': ('КАБЕЛЬ', my_str),
+        'КЛЕММНИК': ('КЛЕММНИК', my_str),
+        'КАБЕЛЬ2': ('КАБЕЛЬ2', my_str),
+        'ЖИЛА2': ('ЖИЛА2', my_str),
+        'ТИП': ('ТИП', my_str),
         'СЕЧЕНИЕ': ('СЕЧЕНИЕ', float),
-        'ТИП_КАБЕЛЯ': ('ТИП_КАБЕЛЯ', str),
-        'ПРИМЕЧАНИЕ': ('ПРИМЕЧАНИЕ', str),
-        'АРТИКУЛ': ('АРТИКУЛ', str),
-        'ПРОИЗВОДИТЕЛЬ': ('ПРОИЗВОДИТЕЛЬ', str),
+        'ТИП_КАБЕЛЯ': ('ТИП_КАБЕЛЯ', my_str),
+        'ПРИМЕЧАНИЕ': ('ПРИМЕЧАНИЕ', my_str),
+        'АРТИКУЛ': ('АРТИКУЛ', my_str),
+        'ПРОИЗВОДИТЕЛЬ': ('ПРОИЗВОДИТЕЛЬ', my_str),
     }
     dtypes_properties = {
-        'Тип': ('Тип1', str),
+        'Тип': ('Тип1', my_str),
     }
     skip_blocks = ('REF', 'КАБЕЛЬ3')
 
@@ -234,5 +236,5 @@ def used_wires(contact_data, clemmnic_data, file_name):
     res = pandas.DataFrame(res, columns=['cabin', 'clemmnic', 'clemma', 'inner_wire', 'page'])
     df2 = res.rename(columns={"clemmnic": "device"})
     
-    pandas.concat([df1, df2]).sort_values(sort_list).to_excel(file_name, index=False)
+    safe_to_excel(pandas.concat([df1, df2]).sort_values(sort_list), file_name, index=False)
     

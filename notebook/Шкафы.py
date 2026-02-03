@@ -143,6 +143,10 @@ from src.cabin.wire import make_list_wires
 
 from src.out_connect.outer_connection import OuterConnection
 
+from src.misc import safe_to_csv
+from src.misc import safe_to_excel
+from src.misc import safe_excel_writer
+
 
 # ## Чтание схемы и подготовка основных структур
 
@@ -240,7 +244,7 @@ checking_wire_of_contacts(
         outer_connection,
         WORK_CABINE,
         make_wires(G, devices, connected_contacts, cabine_definition).wires().values(),
-        lambda x: len(x) > 3,
+        lambda x: len(x) > 1,
     ),
     f"{station.PLOT_DIR}/Схемы/Контакты жил шкафа {WORK_CABINE}",
 )
@@ -562,8 +566,10 @@ def pandas_internal_installation_brief(internal_inst):
 
 
 internal_inst = build_internal_installation(G, devices, connected_contacts)
-pandas_internal_installation(internal_inst).to_csv(
-    f"{output_dir}/Соединения проводок {WORK_CABINE}-{unixtime}.csv", index=False
+safe_to_csv(
+    pandas_internal_installation(internal_inst),
+    f"{output_dir}/Соединения проводок {WORK_CABINE}-{unixtime}.csv",
+    index=False,
 )
 pandas_internal_installation(internal_inst)
 
@@ -571,8 +577,10 @@ pandas_internal_installation(internal_inst)
 # In[26]:
 
 
-pandas_internal_installation_brief(internal_inst).to_csv(
-    f"{output_dir}/Соединения_проводок_кратко {WORK_CABINE}-{unixtime}.csv", index=False
+safe_to_csv(
+    pandas_internal_installation_brief(internal_inst),
+    f"{output_dir}/Соединения_проводок_кратко {WORK_CABINE}-{unixtime}.csv",
+    index=False,
 )
 pandas_internal_installation_brief(internal_inst)
 
@@ -810,18 +818,21 @@ device_specification(su_device)
 # In[40]:
 
 
-device_specification(su_device, set_name=True).to_excel(
+safe_to_excel(
+    device_specification(su_device, set_name=True),
     f"{plot_dir}/Спецификация устройств {WORK_CABINE}.xlsx",
     index=False,
 )
-device_specification(su_device, set_name=True).to_csv(
-    f"{output_dir}/Спецификация устройств {WORK_CABINE}-{unixtime}.csv", index=False
+safe_to_csv(
+    device_specification(su_device, set_name=True),
+    f"{output_dir}/Спецификация устройств {WORK_CABINE}-{unixtime}.csv",
+    index=False,
 )
-
-pandas.DataFrame(
-    enclosure_specification(cabine_definition, su_device, equipment)
-).to_excel(
-    f"{plot_dir}/Полная спецификация.xlsx", sheet_name="Спецификация", index=False
+safe_to_excel(
+    pandas.DataFrame(enclosure_specification(cabine_definition, su_device, equipment)),
+    f"{plot_dir}/Полная спецификация.xlsx",
+    sheet_name="Спецификация",
+    index=False,
 )
 
 
@@ -849,7 +860,8 @@ reference_out
 # In[44]:
 
 
-reference_out.to_csv(
+safe_to_csv(
+    reference_out,
     f"{plot_dir}/Загрузка инициализированных ссылок на спецификацию в чертеж Autocad {WORK_CABINE}.txt",
     sep="\t",
     encoding="cp1251",

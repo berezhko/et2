@@ -124,6 +124,10 @@ from src.plot_table import fit_data
 
 from src.elements import AutocadElements
 
+from src.misc import safe_to_csv
+from src.misc import safe_to_excel
+from src.misc import safe_excel_writer
+
 
 # ## Чтение исходной схемы и инициализация основных структур
 
@@ -170,9 +174,12 @@ columns_clemmnic_data = [
     "number",
     "direction",
 ]
-pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data).sort_values(
-    by=["cabin", "clemmnic", "clemma"]
-).to_csv(f"{output_dir}/Отладка-{unixtime}.csv")
+safe_to_csv(
+    pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data).sort_values(
+        by=["cabin", "clemmnic", "clemma"]
+    ),
+    f"{output_dir}/Отладка-{unixtime}.csv",
+)
 
 
 # #### Краткое содержание clemmnic_data
@@ -419,7 +426,7 @@ plot_devices(
 
 
 def used_devices_with_contacts(station, contact_data, device_data, file_name):
-    with pandas.ExcelWriter(file_name) as writer:
+    with safe_excel_writer(file_name) as writer:
         for cabin_num in station.show_contacts_cabines():
             closet_device = view_devices_with_contacts(
                 station, contact_data, device_data, cabin_num, add_closet=False
@@ -444,7 +451,7 @@ def used_devices_with_contacts_to_csv(station, contact_data, device_data, file_n
         df = pandas.concat([df, new_df])
         cabins += len(new_df) * [cabin_num]
     df["ШКАФ"] = cabins
-    df.to_csv(file_name, index=False)
+    safe_to_csv(df, file_name, index=False)
 
     _ = shutil.copyfile(
         file_name, f"{output_dir}/{basename(file_name)[:-4]}-{unixtime}.csv"
@@ -477,10 +484,10 @@ list_wires = make_wires_journal(station, cables_collection, clemmnic_data)
 
 name_file = f"{output_dir}/Жилы-{unixtime}"
 list_wires_pandas = pandas.DataFrame(list_wires)
-list_wires_pandas.to_excel(name_file + ".xlsx", index=False)
-list_wires_pandas.to_csv(name_file + ".csv", index=False)
+safe_to_excel(list_wires_pandas, name_file + ".xlsx", index=False)
+safe_to_csv(list_wires_pandas, name_file + ".csv", index=False)
 
-list_wires_pandas.to_excel(f"{plot_dir}/КЖ/Excel Список жил.xlsx", index=False)
+safe_to_excel(list_wires_pandas, f"{plot_dir}/КЖ/Excel Список жил.xlsx", index=False)
 
 lisp_list_wires = pl.plot_table(
     shrink_long_string(list_wires_pandas.to_numpy()),
@@ -501,10 +508,12 @@ cable_journal = make_cable_journal(station, cables_collection)
 
 name_file = f"{output_dir}/КЖ-{unixtime}"
 cable_journal_pandas = pandas.DataFrame(cable_journal)
-cable_journal_pandas.to_excel(name_file + ".xlsx", index=False)
-cable_journal_pandas.to_csv(name_file + ".csv", index=False)
+safe_to_excel(cable_journal_pandas, name_file + ".xlsx", index=False)
+safe_to_csv(cable_journal_pandas, name_file + ".csv", index=False)
 
-list_wires_pandas.to_excel(f"{plot_dir}/КЖ/Excel Кабельный журнал.xlsx", index=False)
+safe_to_excel(
+    list_wires_pandas, f"{plot_dir}/КЖ/Excel Кабельный журнал.xlsx", index=False
+)
 
 lisp_cable_journal = pl.plot_table(
     shrink_long_string(cable_journal_pandas.to_numpy()),
@@ -577,7 +586,8 @@ def montage_scheme(frame):
         f"{output_dir}/Монтажные схемы подключения кабелей-{unixtime}.lsp",
     )
 
-    pandas.DataFrame(montage_cable.montage_scheme_array()).to_csv(
+    safe_to_csv(
+        pandas.DataFrame(montage_cable.montage_scheme_array()),
         f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.csv",
         sep=";",
         index=False,
@@ -637,8 +647,10 @@ if "isolation" in station.conf and station.conf.isolation == True:
             station.conf.isolation_gen if "isolation_gen" in station.conf else False
         ),
     )
-    pandas.DataFrame(isolation()).to_excel(
-        f"{plot_dir}/Протокол проверки изоляции кабелей.xlsx", index=False
+    safe_to_excel(
+        pandas.DataFrame(isolation()),
+        f"{plot_dir}/Протокол проверки изоляции кабелей.xlsx",
+        index=False,
     )
 
 
@@ -676,7 +688,8 @@ get_cable_with_name_equal_direction(cables_data)
 
 
 def save_init_cables_name(cables_data):
-    pandas.DataFrame(cables_data).to_csv(
+    safe_to_csv(
+        pandas.DataFrame(cables_data),
         f"{plot_dir}/Схемы/Загрузка инициализированных кабелей в чертеж Autocad.txt",
         sep="\t",
         encoding="cp1251",
@@ -712,7 +725,8 @@ pandas.DataFrame(init_reference)
 # In[52]:
 
 
-pandas.DataFrame(init_reference).to_csv(
+safe_to_csv(
+    pandas.DataFrame(init_reference),
     f"{plot_dir}/Схемы/Загрузка инициализированных ссылок в чертеж Autocad.txt",
     sep="\t",
     encoding="cp1251",
@@ -728,11 +742,13 @@ pandas.DataFrame(init_reference).to_csv(
 
 
 total_length = total_length_journal(station, cables_collection)
-pandas.DataFrame(total_length, index=["Длинна"]).T.to_excel(
-    f"{plot_dir}/Итоговые длины.xlsx"
+safe_to_excel(
+    pandas.DataFrame(total_length, index=["Длинна"]).T,
+    f"{plot_dir}/Итоговые длины.xlsx",
 )
-pandas.DataFrame(total_length, index=["Длинна"]).T.to_csv(
-    f"{output_dir}/Итоговые длины-{unixtime}.csv"
+safe_to_csv(
+    pandas.DataFrame(total_length, index=["Длинна"]).T,
+    f"{output_dir}/Итоговые длины-{unixtime}.csv",
 )
 pandas.DataFrame(total_length, index=["Длинна"]).T
 
@@ -741,8 +757,9 @@ pandas.DataFrame(total_length, index=["Длинна"]).T
 
 
 count_section = count_section_journal(cables_collection)
-pandas.DataFrame(count_section, index=["Количество участков"]).T.to_csv(
-    f"{output_dir}/Итоговое количество участков-{unixtime}.csv"
+safe_to_csv(
+    pandas.DataFrame(count_section, index=["Количество участков"]).T,
+    f"{output_dir}/Итоговое количество участков-{unixtime}.csv",
 )
 pandas.DataFrame(count_section, index=["Количество участков"]).T
 
@@ -816,9 +833,8 @@ used_devices_for_specification(
     f"{plot_dir}/Спецификация устойств для спецификации.xlsx",
 )
 
-pandas.DataFrame(
-    summary_equipment_schedule(station, clemmnic_data, device_data)
-).to_excel(
+safe_to_excel(
+    pandas.DataFrame(summary_equipment_schedule(station, clemmnic_data, device_data)),
     f"{plot_dir}/Сводна ведомость устойств спецификации.xlsx",
     sheet_name="Сводна ведомость",
 )

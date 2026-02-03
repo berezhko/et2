@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 from src.misc import isNaN
 from src.exception import EmptyAndNotEmptyClemms
 from src.station.misc import get_short_cabinet_name
+from src.misc import safe_excel_writer
 
 from .misc import what
 
@@ -295,7 +296,7 @@ def make_pandas_clemmnics(station, clemms, cabin_num):
 
 
 def used_clemms(station, clemmnic_data, file_name):
-    with pandas.ExcelWriter(file_name) as writer:
+    with safe_excel_writer(file_name) as writer:
         for cabin_num in clemmnic_data.get_list_cabine():
             cabin_clemms = get_clemmnics_in_cabine(station, clemmnic_data, cabin_num)
             if cabin_clemms:

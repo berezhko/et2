@@ -15,6 +15,9 @@ def load_config():
     config.settings_yaml = config.settings_dir + station.settings_yaml
     config.settings_file = config.settings_dir + station.settings_xlsx
     config.scheme_file = config.scheme_dir + station.scheme_file
+    config.cable_layout_file = ''
+    if 'cable_layout_file' in station:
+        config.cable_layout_file = config.scheme_dir + station.cable_layout_file
     conf_station = OmegaConf.load(config.settings_yaml)
     return OmegaConf.merge(config, conf_station)
 

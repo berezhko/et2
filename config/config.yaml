@@ -10,7 +10,6 @@ SET_NAME_BY_ORDER: false
 START_NUMBER: 100
 CALC_LENGTH: false
 READ_LENGTH_FROM_FILE: false
-CABINE_FILE: ''
 
 cabines:
   generate_equipment_config: false

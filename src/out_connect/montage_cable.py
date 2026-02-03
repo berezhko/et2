@@ -10,7 +10,7 @@ from src.elements import Text as Text
 
 from src.station.misc import get_long_cabinet_name
 from src.station.misc import get_short_cabinet_name
-
+from src.misc import safe_excel_writer
 from src.out_connect.direction import is_direction
 
 from src.exception import NotFoundCable
@@ -962,7 +962,7 @@ def mark_cores(mm1, mm2):
 
 def output_clemmnics(mm1, mm2, output_file_name):
     import pandas
-    with pandas.ExcelWriter(output_file_name) as writer:
+    with safe_excel_writer(output_file_name) as writer:
         for cabine, cores in mark_cores(mm1, mm2).items():
             df = pandas.DataFrame(cores)
             if df.empty:

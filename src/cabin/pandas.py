@@ -3,9 +3,12 @@ import os.path
 from pathlib import Path
 
 from dataclasses import dataclass, field
-from typing import Union, List, Tuple, Dict
+from typing import Union, List, Tuple, Dictimport logging
+
+logger = logging.getLogger(__name__)
 
 from src.misc import check_count_fields_in_csv
+from src.misc import my_str
 from src.yaml import read_yaml_config
 
 from .specification_unit import SpecificationUnitList
@@ -127,24 +130,25 @@ def read_cabine_data(closet_file):
 
 def read_cabine_yaml_data(file_name):
     dtypes_main = {
-        'Real Name': ('Имя', str),
+        'Real Name': ('Имя', my_str),
         'X': ('Положение X', float),
         'Y': ('Положение Y', float),
     }
     dtypes_attribs = {
-        'КОЛИЧЕСТВО': ('КОЛИЧЕСТВО1', str),
-        'ИНФОРМАЦИЯ': ('ИНФОРМАЦИЯ', str),
-        'АРТИКУЛ': ('АРТИКУЛ', str),
-        'ИМЯ': ('ИМЯ1', str),
-        'ПРОИЗВОДИТЕЛЬ': ('ПРОИЗВОДИТЕЛЬ', str),
-        'РЯД': ('РЯД', str),
-        'ТИП': ('ТИП', str),
-        'МОНТАЖ': ('МОНТАЖ', str),
-        'НОМЕР': ('НОМЕР', str),
+        'КОЛИЧЕСТВО': ('КОЛИЧЕСТВО1', my_str),
+        'ИНФОРМАЦИЯ': ('ИНФОРМАЦИЯ', my_str),
+        'АРТИКУЛ': ('АРТИКУЛ', my_str),
+        'ИМЯ': ('ИМЯ1', my_str),
+        'ПРОИЗВОДИТЕЛЬ': ('ПРОИЗВОДИТЕЛЬ', my_str),
+        'РЯД': ('РЯД', my_str),
+        'ТИП': ('ТИП', my_str),
+        'МОНТАЖ': ('МОНТАЖ', my_str),
+        'НОМЕР': ('НОМЕР', my_str),
     }
     dtypes_properties = {
         'Высота': ('Высота', float),
         'Ширина': ('Ширина', float),
+        'МОНТАЖ': ('МОНТАЖ', my_str),  # Во второй версии "МОНТАЖ" сделан как свойство блока "КОНТАКТ"
     }
     skip_blocks = ('ВЫНОСКА')
 

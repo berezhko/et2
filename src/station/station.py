@@ -21,7 +21,7 @@ class Station:
         self.START_NUMBER = config.START_NUMBER
         self.CALC_LENGTH = config.CALC_LENGTH
         self.READ_LENGTH_FROM_FILE = config.READ_LENGTH_FROM_FILE
-        self.CABINE_FILE = config.CABINE_FILE
+        self.CABINE_FILE = config.cable_layout_file
 
         self._Cabine = Cabine
         self._enclosues = station_settings.read_enclosure_list(config)

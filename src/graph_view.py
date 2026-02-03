@@ -1,4 +1,4 @@
-from src.elements import Line
+from src.elements import LineCommand
 from src.elements import Text
 
 
@@ -42,5 +42,5 @@ class GraphView:
                     size = font_size[0] if self._is_node(p) else font_size[1]
                     lisp_text += [Text(c, str(p), size, 0, '_MC')]
                 line.append(c)
-            lisp_line += [Line(line[0], line[1])]
+            lisp_line += [LineCommand(line[0], line[1])]
         return lisp_line + lisp_text

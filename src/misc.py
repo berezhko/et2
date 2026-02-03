@@ -1,4 +1,10 @@
-from os import path
+import os
+from pathlib import Path
+import hashlib
+import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def isNaN(num):
@@ -10,10 +16,8 @@ def eq(compare_value, float_num, eps=0.01):
 
 
 def md5(file_name):
-    import hashlib
-    import os.path
     result = '00000000000000000000000000000000'
-    if os.path.exists(file_name):
+    if file_exist(file_name):
         hash_md5 = hashlib.md5()
         with open(file_name, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
@@ -23,7 +27,6 @@ def md5(file_name):
 
 
 def check_test(prefix_name, unixtime, md5sum, output_dir):
-    import os
     def check_md5sum(file, md5sum):
         return md5(f'{output_dir}/{file}') == md5sum
 
@@ -63,4 +66,38 @@ def check_count_fields_in_csv(file_name, count):
 
 
 def file_exist(file_name):
-    return path.isfile(file_name)
+    return os.path.isfile(file_name)
+
+
+def make_dir(path: Path):
+    if not path.parent.exists():
+        logger.info(f"Создаем директорию [{path.parent}] для файла [{path.name}]")
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def safe_open(file_path, *args, **kwargs):
+    path = Path(file_path)
+    make_dir(path)
+    return path.open(*args, **kwargs)
+
+
+def safe_to_csv(df: pd.DataFrame, path: str, **kwargs):
+    make_dir(Path(path))
+    df.to_csv(path, **kwargs)
+
+
+def safe_to_excel(df: pd.DataFrame, path: str, **kwargs):
+    make_dir(Path(path))
+    df.to_excel(path, **kwargs)
+
+
+def safe_excel_writer(path: str, **kwargs):
+    make_dir(Path(path))
+    return pd.ExcelWriter(path, **kwargs)
+
+
+def my_str(s):
+    result = str(s).strip()
+    if result != str(s):
+        logger.info(f'my_str: {result} != {str(s)}')
+    return result

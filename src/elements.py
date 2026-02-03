@@ -2,6 +2,7 @@ import math
 from typing import List, Tuple, Iterator
 
 from . import lisp_template
+from src.misc import safe_open
 
 
 class Autocad:
@@ -118,7 +119,7 @@ class Mtext(Autocad):
         return f'(command "_mtext" \'({self.point1}){justify}{height} \'({self.point2}) "{self.text}" "")\n'
 
 
-class Line(Autocad):
+class LineCommand(Autocad):
     def __init__(self, *points: List[float], c: bool = False):
         if len(points) < 2:
             raise Exception(points, "Недостаточно точек для построения линии")
@@ -128,7 +129,7 @@ class Line(Autocad):
         self.c = c
 
     # ToDo сравнить вывод обоих вариантов через autocad
-    def autocad_old(self) -> str:
+    def autocad(self) -> str:
         result = '(command "_line" '
         for point in self.points:
             result += f"'({point}) "
@@ -138,6 +139,15 @@ class Line(Autocad):
             result += '"")\n'
         return result
 
+
+class Line(Autocad):
+    def __init__(self, *points: List[float], c: bool = False):
+        if len(points) < 2:
+            raise Exception(points, "Недостаточно точек для построения линии")
+        self.points: List[Point] = []
+        for p in points:
+            self.points.append(Point(p))
+        self.c = c
 
     def autocad(self) -> str:
         # Количество вершин
@@ -280,5 +290,5 @@ class AutocadElements(List[TypeElement]):
             result += self._get_function(func_name, elements)
             list_functions.append(func_name)
         result += self._runplot(list_functions)
-        with open(file_name, "w+", encoding="cp1251") as f:
+        with safe_open(file_name, "w+", encoding="cp1251") as f:
             f.write(result)

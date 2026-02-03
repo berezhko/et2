@@ -41,6 +41,7 @@ def make_wires_journal(station, cables_collection, clemmnic_data):
 
 
 def make_cable_journal(station, cables_collection):
+    _check_zero_distance(station, cables_collection)
     # Сперва добавляем в КЖ новые кабеля
     result = []
     for i, cable in enumerate(cables_collection.cables(), start=1):
@@ -94,6 +95,17 @@ def base_method_for_journal(f, cables_collection):
             result[key] = 0
         result[key] = result[key] + f(cable)
     return result
+
+
+def _check_zero_distance(station, cables_collection):
+    result = []
+    for cable in cables_collection.cables():
+        try:
+            get_distance(cable, station, cables_collection)
+        except DistanceZero:
+            result.append(cable)
+    if result:
+        raise DistanceZero(result, "Distance == 0")
 
 
 def get_distance(cable, station, cables_collection):

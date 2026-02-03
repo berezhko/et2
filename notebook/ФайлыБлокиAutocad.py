@@ -144,6 +144,7 @@ def save_xlsx(mypath, devices):
 
 
 def save_dwg(devices):
+    "Из внешненго вида устройства гененируем представление для Auotcad"
     result = []
     point_x = 0
     for d, contacts in devices.items():

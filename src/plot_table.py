@@ -1,4 +1,5 @@
 HEIGHT = 4
+TEXT_SIZE = None
 from src.elements import Line
 from src.elements import Text
 from src.elements import AutocadElements
@@ -55,7 +56,10 @@ def plot_text(x, y, length, text, align='c'):
     elif align == 'r':
         offset_x = length-2
         align_option = "_MR"
-    font_size = HEIGHT/2.0
+    if TEXT_SIZE:
+        font_size = TEXT_SIZE
+    else:
+        font_size = HEIGHT/2.0
     return [Text((x + offset_x, y - HEIGHT/2), text, font_size, 0, align_option)]
 
 

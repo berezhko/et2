@@ -1,8 +1,11 @@
 import pandas
 import numpy
-
+from src.misc import safe_to_csv
+from src.misc import safe_to_excel
+from src.misc import safe_excel_writer
 from collections import Counter
 from collections import defaultdict
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -97,11 +100,11 @@ def spds_specification_excel(spds_array, output_file, copy_to_csv=False):
         "Примечание",
     ]
     spds_excel = pandas.DataFrame(spds_array, columns=header)
-    spds_excel.to_excel(output_file, sheet_name="Спецификация", index=False)
+    safe_to_excel(spds_excel, output_file, sheet_name="Спецификация", index=False)
     
     if copy_to_csv:
         spds_csv = pandas.DataFrame(spds_excel, columns=header[1:])
-        spds_csv.to_csv(output_file[:-4]+"csv", sep=";", index=False)
+        safe_to_csv(spds_csv, output_file[:-4]+"csv", sep=";", index=False)
     
 
 def spds_specification(spds_array, output_file):
@@ -156,7 +159,7 @@ def used_devices_for_specification(station, closets, device_data, file_name):
     '''
     Таблица устройств в спецификации. Необходима для более удобной работы закупщиков.
     '''
-    with pandas.ExcelWriter(file_name) as writer:
+    with safe_excel_writer(file_name) as writer:
         for closet in closets:
             devices = get_list_devices_in_closet(closet, device_data)
             if devices:
@@ -173,7 +176,7 @@ def create_device_config(device, file_path):
     Создание шаблона устройства.
     '''
     file_name = f'{file_path}{device.man_art}.xlsx'
-    with pandas.ExcelWriter(file_name) as writer:
+    with safe_excel_writer(file_name) as writer:
         contacts = pandas.DataFrame(
             columns=['Номер', 'Монтаж', 'Положение X', 'Положение Y']
         )
