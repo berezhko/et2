@@ -4,6 +4,7 @@ from pathlib import Path
 from src.station import station
 from src.station import cabine
 
+
 def load_config():
     project_dir = Path(__file__).resolve().parent.parent.parent
     station = OmegaConf.load(project_dir / "config/station.yaml")
@@ -19,11 +20,23 @@ def load_config():
     if 'cable_layout_file' in station:
         config.cable_layout_file = config.scheme_dir + station.cable_layout_file
     conf_station = OmegaConf.load(config.settings_yaml)
+    
+    general_data = OmegaConf.load(config.general_data.from_file)
+    config.general_data = general_data
+
+    cable_journal = OmegaConf.load(config.cable_journal.from_file)
+    config.cable_journal = cable_journal
+
+    specification = OmegaConf.load(config.specification.from_file)
+    config.specification = specification
+
     return OmegaConf.merge(config, conf_station)
+
 
 def get_station():
     conf = load_config()
     return station.Station(conf, cabine.Cabine)
+
 
 def get_default_cabin():
     conf = load_config()

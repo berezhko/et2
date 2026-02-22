@@ -16,4 +16,3 @@ jupyterlab_git
 mypy-extensions
 #voila
 streamlit
-tabulate

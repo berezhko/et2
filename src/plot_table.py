@@ -1,5 +1,6 @@
 HEIGHT = 4
 TEXT_SIZE = None
+PLOT_BORDER = True
 from src.elements import Line
 from src.elements import Text
 from src.elements import AutocadElements
@@ -15,14 +16,16 @@ def plot_table(data, table_fromar, offset=(0, 0), align=[]):
         for i, cell in enumerate(row):
             x, length = get_possition(i, table_fromar)
             x = x + offset[0]
-            result = result + plot_border(x, y, length)
+            if PLOT_BORDER:
+                result = result + plot_border(x, y, length)
             result = result + plot_text(x, y, length, cell, get_align_value(i, align))
             width = width + length
         height = height + HEIGHT
-    result += [
-        Line((offset[0], offset[1]), (offset[0], offset[1]-height)),
-        Line((offset[0], offset[1]-height), (width, offset[1]-height)),
-    ]
+    if PLOT_BORDER:
+        result += [
+            Line((offset[0], offset[1]), (offset[0], offset[1]-height)),
+            Line((offset[0], offset[1]-height), (width, offset[1]-height)),
+        ]
     return result
 
 def get_align_value(index, align):
@@ -170,4 +173,70 @@ def fit_data(plot_arr, table_width, ksize_font=3.0/5, delim=', ', add_blank_line
             for _ in table_width:
                 temp.append('')
             result.append(temp)
+    return result
+
+
+def plot_configured_table(config, data, file_name):
+    global HEIGHT, TEXT_SIZE, PLOT_BORDER
+    height = HEIGHT
+    text_size = TEXT_SIZE
+    plot_border = PLOT_BORDER
+    HEIGHT = config['height'] if 'height' in config else height
+    TEXT_SIZE = config['text_size'] if 'text_size' in config else text_size
+    PLOT_BORDER = config['plot_border'] if 'plot_border' in config else plot_border
+    
+    result = plot_split_table(
+        fit_data(
+            data,
+            config['table_width'],
+            ksize_font=len(config['table_width']) * [config['k_size_font']],
+            delim=" ",
+            add_blank_line=config['add_blank_line'],
+        ),
+        config['header'],
+        config['table_width'],
+        config['rows_in_first_sheet'],
+        config['rows_in_other_sheet'],
+        config['start_possition'],
+        file_name,
+        delta=config['delta'],
+        align=config['text_align'],
+    )
+
+    HEIGHT = height
+    TEXT_SIZE = text_size
+    PLOT_BORDER = plot_border
+
+    return result
+
+
+def print_work_scheme(df, x, y, table_param, header=True):
+    global HEIGHT
+    height = HEIGHT
+    start_possition = {"X": x, "Y": y}
+    ksize_font = len(list(df.columns)) * [(4 / table_param.height) * 3.2 / 5]
+    if header:
+        header_table = [list(df.columns)]
+    else:
+        header_table = None
+    data_numpy = df.to_numpy()
+
+    HEIGHT = table_param.height
+    result = get_split_table(
+        fit_data(
+            data_numpy,
+            table_param.width,
+            ksize_font=ksize_font,
+            delim=" ",
+            add_blank_line=False
+        ),
+        header_table,
+        table_param.width,
+        table_param.rows_count,
+        table_param.rows_count,
+        start_possition,
+        delta=5,
+        align=table_param.align,
+    )
+    HEIGHT = height
     return result

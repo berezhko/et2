@@ -20,7 +20,7 @@ from src.station.misc import get_long_cabinet_name
 def cable_to_specification(station, cables_collection):
     result = [['N', 'Кабельная продукция', '', '', '', '', '', '', '']]
     for type_cable, length in total_length_journal(station, cables_collection).items():
-        result.append(['', type_cable, '', '', '', 'м', length, '', ''])
+        result.append(['', ' '.join(type_cable), '', '', '', 'м', length, '', ''])
     result.append(['-', '', '', '', '', '', '', '', ''])
     return numpy.array(result)
 
@@ -107,22 +107,25 @@ def spds_specification_excel(spds_array, output_file, copy_to_csv=False):
         safe_to_csv(spds_csv, output_file[:-4]+"csv", sep=";", index=False)
     
 
-def spds_specification(spds_array, output_file):
-    rows_in_first_sheet = 24
-    rows_in_other_sheet = 28
-    start_possition = {'X': 0, 'Y': -32}
-    table_width = [20, 130, 60, 35, 45, 20, 20, 25, 40]
-    ksize_font = 9*[42/130.]
-    align = ['c', 'l', 'l', 'c', 'c', 'c', 'c', 'c', 'c']
-    header_table = [list(range(1, 10))]
-
-    pl.HEIGHT = 8
+def spds_specification(spds_array, output_file, config):
+    height = pl.HEIGHT
+    pl.HEIGHT = config.height
     pl.plot_split_table(
-        fit_data(spds_array, table_width, ksize_font=ksize_font, delim=' '),
-        header_table, table_width, rows_in_first_sheet, rows_in_other_sheet,
-        start_possition, output_file, delta=25, align=align
+        fit_data(
+            spds_array,
+            config.table_width,
+            ksize_font=len(config.table_width)*[config.k_size_font],
+            delim=' '),
+        [list(config.header)],
+        config.table_width,
+        config.rows_in_first_sheet,
+        config.rows_in_other_sheet,
+        config.start_possition,
+        output_file,
+        delta=config.delta,
+        align=config.text_align
     )
-    pl.HEIGHT = 4
+    pl.HEIGHT = height
 
 
 def get_list_devices_in_closet(closet, device_data):

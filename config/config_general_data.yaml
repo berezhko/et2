@@ -1,0 +1,32 @@
+cabine_list:
+    start_possition: {X: 0, Y: 0}
+    table_width: [15, 35, 100, 40]
+    text_align: ["c", "c", "l", "c"]
+    rows_in_table: 39
+    delta: 15
+    height: 6
+devices_list:
+    start_possition: {X: 0, Y: 0}
+    table_width: [14, 43, 49, 22, 10, 19, 28]
+    text_align: ["c", "l", "l", "l", "c", "l", "l"]
+    k_size_font: 0.64
+    delta: 25
+    rows_in_first_sheet: 56
+    rows_in_other_sheet: 66
+schemes_name:
+    start_possition: {X: 0, Y: 0}
+    offset_y: 1
+    font_size: 3
+work_scheme:
+    start_possition: {X: 0, Y: 0}
+    sheet_width: 395
+    work_scheme:
+        height: 6
+        rows_count: 24
+        width: [15, 140, 30]
+        align: ["c", "l", "l"]
+    list_scheme:
+        height: 6
+        rows_count: 37
+        width: [60, 95, 30]
+        align: ["l", "l", "l"]

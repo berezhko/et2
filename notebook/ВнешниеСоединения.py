@@ -7,7 +7,6 @@
 
 
 import pandas
-import shutil
 import logging
 
 from os.path import basename
@@ -48,9 +47,9 @@ output_dir = station.OUTPUT_DIR
 plot_dir = station.PLOT_DIR
 
 
-# ## Импортирование вспомогательных функций
+# ## Импортир функций проекта
 
-# ### Функции работающие со структурой clemmnic_data
+# ### Построение клеммников
 
 # In[5]:
 
@@ -58,7 +57,7 @@ plot_dir = station.PLOT_DIR
 from src.out_connect.pandas import make_clemmnic_list
 
 
-# ### Функции работающие со структурой contact и device
+# ### Постоение контактов и устройств
 
 # In[6]:
 
@@ -67,7 +66,7 @@ from src.out_connect.contact import make_contact_list
 from src.out_connect.device import make_device_list
 
 
-# ### Класс CableConnection формирующий кабеля
+# ### Формирование кабеля
 
 # In[7]:
 
@@ -75,7 +74,7 @@ from src.out_connect.device import make_device_list
 from src.out_connect.cable_connection import make_cable_connection
 
 
-# ### Функции работы с исходной структурой Pandas
+# ### Чтение исходных данных
 
 # In[8]:
 
@@ -83,74 +82,120 @@ from src.out_connect.cable_connection import make_cable_connection
 from src.out_connect.pandas import read_project_data
 
 
-# ### Функции формарования КЖ и списка жил
+# ### Общие данные
 
 # In[9]:
 
 
-from src.out_connect.cable_journal import make_wires_journal
-from src.out_connect.cable_journal import make_cable_journal
-from src.out_connect.cable_journal import total_length_journal
-from src.out_connect.cable_journal import count_section_journal
-from src.out_connect.cable_journal import shrink_long_string
+from src.out_connect.general import (
+    device_list,
+    make_cabinet_table,
+    view_devices_with_contacts,
+    print_work_scheme,
+    print_schemes_name,
+    save_cabinet_table,
+    plot_devices,
+)
 
 
-# ### Построение монтажных схем
+# ### Кабельные журнал
 
 # In[10]:
+
+
+from src.out_connect.cable_journal import (
+    make_wires_journal,
+    make_cable_journal,
+    total_length_journal,
+    count_section_journal,
+    shrink_long_string,
+    get_table_cable_journal_f7_1,
+    get_table_total_length,
+    CableLinks,
+)
+
+
+# ### Монтажные схемы
+
+# In[11]:
 
 
 import src.out_connect.montage_cable as montage_cable
 from src.out_connect import isolation_cables
 
 
+# ### Выгрузка кебелей в в схему
+
+# In[12]:
+
+
+from src.out_connect.define_cables import (
+    set_cable_name,
+    get_cable_without_names,
+    get_cable_with_name_equal_direction,
+)
+
+
+# ### Спецификация
+
+# In[13]:
+
+
+from src.out_connect.specification import (
+    used_devices_for_specification,
+    summary_equipment_schedule,
+    generate_equipment_config,
+    spds_specification,
+    spds_specification_excel,
+    spds_specification_array,
+)
+
+
 # ### Прочие функции
 
-# In[11]:
+# In[14]:
 
 
 from src.station.misc import get_short_cabinet_name
 from src.out_connect.clemmnic import used_clemms
 from src.out_connect.pandas import used_wires
 
-from src.out_connect.general import device_list
-from src.out_connect.general import make_cabinet_table
-from src.out_connect.general import view_devices_with_contacts
-from src.out_connect.general import print_work_scheme
-from src.out_connect.general import print_schemes_name
-
 import src.plot_table as pl
 from src.plot_table import fit_data
 
 from src.elements import AutocadElements
 
-from src.misc import safe_to_csv
-from src.misc import safe_to_excel
-from src.misc import safe_excel_writer
+from src.misc import (
+    safe_to_csv,
+    safe_to_excel,
+    safe_excel_writer,
+    copy_file,
+    file_exist,
+)
 
 
 # ## Чтение исходной схемы и инициализация основных структур
 
-# In[12]:
+# In[15]:
 
 
 project_data = read_project_data(station)
 
 
-# In[13]:
+# In[16]:
 
 
 contact_data = make_contact_list(project_data, station)
 device_data = make_device_list(project_data, station)
 
 
-# In[14]:
+# In[17]:
 
 
 clemmnic_data = make_clemmnic_list(project_data, station)
 
 
-# In[15]:
+# In[18]:
 
 
 cables_collection = make_cable_connection(clemmnic_data, station)
@@ -158,7 +203,7 @@ cables_collection = make_cable_connection(clemmnic_data, station)
 
 # ### Отладочная информация о работе алгоритма
 
-# In[16]:
+# In[19]:
 
 
 columns_clemmnic_data = [
@@ -184,7 +229,7 @@ safe_to_csv(
 
 # #### Краткое содержание clemmnic_data
 
-# In[17]:
+# In[20]:
 
 
 pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data)
@@ -192,7 +237,7 @@ pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data)
 
 # #### Клеммники с различающимися внешними и внутренними жилами
 
-# In[18]:
+# In[21]:
 
 
 def different_wires(station, clemmnic_data):
@@ -209,7 +254,7 @@ different_wires(station, clemmnic_data)
 
 # #### Контакты, которые задублированы
 
-# In[19]:
+# In[22]:
 
 
 contact_data.check_intersection(station, device_data)
@@ -217,7 +262,7 @@ contact_data.check_intersection(station, device_data)
 
 # #### Кабели, для которых не найдена пара
 
-# In[20]:
+# In[23]:
 
 
 pdm = pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data)
@@ -228,7 +273,7 @@ not_defined_cable = pdm[(pdm.process == 0) & (~pdm.cabel.isna())].sort_values(
 not_defined_cable
 
 
-# In[21]:
+# In[24]:
 
 
 def check_cable(df):
@@ -246,7 +291,7 @@ def check_cable(df):
         )
 
 
-# In[22]:
+# In[25]:
 
 
 check_cable(not_defined_cable)
@@ -254,7 +299,7 @@ check_cable(not_defined_cable)
 
 # #### Кабели, для которых нет напрвления
 
-# In[23]:
+# In[26]:
 
 
 pdm = pandas.DataFrame(clemmnic_data, columns=columns_clemmnic_data)
@@ -262,7 +307,7 @@ pandas.set_option("display.max_rows", None)
 pdm[(pdm.direction.isna()) & (~pdm.cabel.isna())]
 
 
-# In[24]:
+# In[27]:
 
 
 pandas.set_option("display.max_rows", 60)
@@ -271,7 +316,7 @@ pandas.get_option("display.max_rows")
 
 # #### Краткое содержание cables_collection
 
-# In[25]:
+# In[28]:
 
 
 cables_collection.debug(unixtime)
@@ -279,7 +324,7 @@ cables_collection.debug(unixtime)
 
 # #### Длины направлений для внетренних и внешних участков
 
-# In[26]:
+# In[29]:
 
 
 from src.out_connect.misc import used_direction
@@ -289,7 +334,7 @@ used_direction(station, cables_collection)
 
 # ## Список клеммников и жил в шкафах
 
-# In[27]:
+# In[30]:
 
 
 used_clemms(station, clemmnic_data, f"{plot_dir}/Схемы/Клеммники.xlsx")
@@ -300,71 +345,31 @@ used_wires(contact_data, clemmnic_data, f"{plot_dir}/Схемы/Жилы.xlsx")
 
 # ### Список шкафов
 
-# In[28]:
+# In[31]:
 
 
-def save_cabinet_table(station, file_name):
-    config = station.conf.cabine_list
-    columns = ["Номер", "Обозначение", "Наименование", "Примечание"]
-    table_width = config.table_width
-    header_table = [columns]
-    rows_in_table = config.rows_in_table
-    start_possition = {"X": config.start_possition[0], "Y": config.start_possition[1]}
-    print_table1 = pandas.DataFrame(make_cabinet_table(station)).to_numpy()
-
-    height = pl.HEIGHT
-    pl.HEIGHT = config.height
-    pl.plot_split_table(
-        print_table1,
-        header_table,
-        table_width,
-        rows_in_table,
-        rows_in_table,
-        start_possition,
-        file_name,
-        delta=config.delta,
-        align=["c", "c", "l", "c"],
-    )
-
-    _ = shutil.copyfile(
-        file_name, f"{output_dir}/{basename(file_name)[:-4]}-{unixtime}.lsp"
-    )
-
-    pl.HEIGHT = height
-
-
-# In[29]:
-
-
-save_cabinet_table(
-    station, f"{plot_dir}/Схемы/ОД. Печать списка шкафов для принципиалок.lsp"
-)
+file_name = f"{plot_dir}/Схемы/ОД. Печать списка шкафов для принципиалок.lsp"
+save_cabinet_table(station, file_name)
+copy_file(file_name, output_dir, unixtime)
 
 
 # ### Заполнение листа общих данных
 
-# In[30]:
+# In[32]:
 
 
 print_work_scheme(
-    station,
-    f"{plot_dir}/Схемы/ОД. Рабочие, ссылочные и прилагаемые чертежи.lsp",
-    20,
-    292,
+    station, f"{plot_dir}/Схемы/ОД. Рабочие, ссылочные и прилагаемые чертежи.lsp"
 )
 
 
 # ### Заполнение первых листов основного комплекта
 
-# In[31]:
+# In[33]:
 
 
 print_schemes_name(
-    station,
-    f"{plot_dir}/Схемы/ОД. Заполнение первых листов основного комплекта.lsp",
-    -1000,
-    -297,
-    1,
+    station, f"{plot_dir}/Схемы/ОД. Заполнение первых листов основного комплекта.lsp"
 )
 
 
@@ -372,57 +377,23 @@ print_schemes_name(
 
 # #### Вывод в Autocad
 
-# In[32]:
+# In[34]:
 
 
-def plot_devices(station, data_pandas, file_name):
-    config = station.conf.devices_list
-    rows_in_first_sheet = config.rows_in_first_sheet
-    rows_in_other_sheet = config.rows_in_other_sheet
-    start_possition = {"X": config.start_possition[0], "Y": config.start_possition[1]}
-    table_width = config.table_width
-    ksize_font = 7 * [3.2 / 5]
-    align = ["c", "l", "l", "l", "c", "l", "l"]
-
-    data_numpy = data_pandas.to_numpy()
-    header_table = [list(data_pandas.columns)]
-
-    pl.plot_split_table(
-        fit_data(
-            data_numpy,
-            table_width,
-            ksize_font=ksize_font,
-            delim=" ",
-            add_blank_line=False,
-        ),
-        header_table,
-        table_width,
-        rows_in_first_sheet,
-        rows_in_other_sheet,
-        start_possition,
-        file_name,
-        delta=config.delta,
-        align=align,
-    )
-
-    _ = shutil.copyfile(
-        file_name, f"{output_dir}/{basename(file_name)[:-4]}-{unixtime}.lsp"
-    )
-
-
-# In[33]:
-
-
+file_name = (
+    f"{plot_dir}/Схемы/ОД. Печать списка устойств c контактами для принципиалок.lsp"
+)
 plot_devices(
     station,
     device_list(station, contact_data, device_data),
-    f"{plot_dir}/Схемы/ОД. Печать списка устойств c контактами для принципиалок.lsp",
+    file_name,
 )
+copy_file(file_name, output_dir, unixtime)
 
 
 # #### Вывод в Excel и Csv
 
-# In[34]:
+# In[35]:
 
 
 def used_devices_with_contacts(station, contact_data, device_data, file_name):
@@ -453,12 +424,10 @@ def used_devices_with_contacts_to_csv(station, contact_data, device_data, file_n
     df["ШКАФ"] = cabins
     safe_to_csv(df, file_name, index=False)
 
-    _ = shutil.copyfile(
-        file_name, f"{output_dir}/{basename(file_name)[:-4]}-{unixtime}.csv"
-    )
+    copy_file(file_name, output_dir, unixtime)
 
 
-# In[35]:
+# In[36]:
 
 
 used_devices_with_contacts(
@@ -477,7 +446,7 @@ used_devices_with_contacts_to_csv(
 
 # ### Список жил
 
-# In[36]:
+# In[37]:
 
 
 list_wires = make_wires_journal(station, cables_collection, clemmnic_data)
@@ -488,20 +457,12 @@ safe_to_excel(list_wires_pandas, name_file + ".xlsx", index=False)
 safe_to_csv(list_wires_pandas, name_file + ".csv", index=False)
 
 safe_to_excel(list_wires_pandas, f"{plot_dir}/КЖ/Excel Список жил.xlsx", index=False)
-
-lisp_list_wires = pl.plot_table(
-    shrink_long_string(list_wires_pandas.to_numpy()),
-    [36, 36, 26, 25, 240, 32],
-    align=["c", "c", "c", "c", "l", "c"],
-)
-AutocadElements(lisp_list_wires).save(f"{plot_dir}/КЖ/Печать списка жил.lsp")
-
 list_wires_pandas
 
 
 # ### Кабельный журнал
 
-# In[37]:
+# In[38]:
 
 
 cable_journal = make_cable_journal(station, cables_collection)
@@ -514,47 +475,57 @@ safe_to_csv(cable_journal_pandas, name_file + ".csv", index=False)
 safe_to_excel(
     list_wires_pandas, f"{plot_dir}/КЖ/Excel Кабельный журнал.xlsx", index=False
 )
-
-lisp_cable_journal = pl.plot_table(
-    shrink_long_string(cable_journal_pandas.to_numpy()),
-    [25, 35, 20, 120, 120, 15, 15, 15, 30],
-    offset=(-395, 0),
-    align=["c", "c", "c", "l", "l", "c", "c", "c", "c"],
-)
-AutocadElements(lisp_cable_journal).save(f"{plot_dir}/КЖ/Печать КЖ.lsp")
-
 cable_journal_pandas
-
-
-# ### Формирование схем кабельных связей
-
-# In[38]:
-
-
-from src.out_connect.cable_journal import CableLinks
-
-lisp_cable_links = CableLinks(station, cables_collection).plot_cable_link()
-AutocadElements(lisp_cable_links).save(
-    f"{plot_dir}/КЖ/Печать схемы кабельных связей.lsp"
-)
-out = shutil.copyfile(
-    f"{plot_dir}/КЖ/Печать схемы кабельных связей.lsp",
-    f"{output_dir}/Печать схемы кабельных связей-{unixtime}.lsp",
-)
 
 
 # In[39]:
 
 
+all_scheme_cable_journal = pl.plot_configured_table(
+    station.conf.cable_journal.cable_journal_f7_1,
+    get_table_cable_journal_f7_1(cable_journal),
+    f"{plot_dir}/КЖ/Печать КЖ Ф7.lsp",
+)
+all_scheme_cable_journal += pl.plot_configured_table(
+    station.conf.cable_journal.total_length,
+    get_table_total_length(station, cables_collection),
+    f"{plot_dir}/КЖ/Печать КЖ общие длины кабелей.lsp",
+)
+if station.conf.cable_journal.wires_journal.print:
+    all_scheme_cable_journal += pl.plot_configured_table(
+        station.conf.cable_journal.wires_journal,
+        list_wires_pandas.to_numpy(),
+        f"{plot_dir}/КЖ/Печать КЖ список жил.lsp",
+    )
+
+
+# ### Формирование схем кабельных связей
+
+# In[40]:
+
+
+if station.conf.cable_journal.cable_links.print:
+    lisp_cable_links = CableLinks(
+        station, cables_collection, station.conf.cable_journal.cable_links
+    ).plot_cable_link()
+    file_name = f"{plot_dir}/КЖ/Печать схемы кабельных связей.lsp"
+    AutocadElements(lisp_cable_links).save(file_name)
+    copy_file(file_name, output_dir, unixtime)
+    all_scheme_cable_journal += lisp_cable_links
+
+
+# In[41]:
+
+
 # Общий файл содержащий КЖ, Список жил и Схему кабельных связей
-AutocadElements(lisp_cable_links + lisp_cable_journal + lisp_list_wires).save(
+AutocadElements(all_scheme_cable_journal).save(
     f"{plot_dir}/КЖ/Общий скрипт кабельного журнала.lsp"
 )
 
 
 # ## Построения монтажных схем
 
-# In[40]:
+# In[42]:
 
 
 def montage_scheme(frame):
@@ -578,24 +549,14 @@ def montage_scheme(frame):
         print_table, [120, 30], offset=(50, 350), align=["l", "l"]
     )
 
-    AutocadElements(sheet_data + montage_data).save(
-        f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.lsp"
-    )
-    shutil.copyfile(
-        f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.lsp",
-        f"{output_dir}/Монтажные схемы подключения кабелей-{unixtime}.lsp",
-    )
+    file_name = f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.lsp"
+    AutocadElements(sheet_data + montage_data).save(file_name)
+    copy_file(file_name, output_dir, unixtime)
 
-    safe_to_csv(
-        pandas.DataFrame(montage_cable.montage_scheme_array()),
-        f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.csv",
-        sep=";",
-        index=False,
-    )
-    shutil.copyfile(
-        f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.csv",
-        f"{output_dir}/Монтажные схемы подключения кабелей-{unixtime}.csv",
-    )
+    file_name = f"{plot_dir}/Монтажки/Монтажные схемы подключения кабелей.csv"
+    df_montage_cable = pandas.DataFrame(montage_cable.montage_scheme_array())
+    safe_to_csv(df_montage_cable, file_name, sep=";", index=False)
+    copy_file(file_name, output_dir, unixtime)
 
     return montage_sheets_pandas
 
@@ -618,7 +579,7 @@ def save_cores_notes():
 
 # ### Монтажные схемы
 
-# In[41]:
+# In[43]:
 
 
 montage_scheme(frame=montage_cable.A3)
@@ -626,7 +587,7 @@ montage_scheme(frame=montage_cable.A3)
 
 # ### Маркеровка жил
 
-# In[42]:
+# In[44]:
 
 
 save_cores_notes()
@@ -634,7 +595,7 @@ save_cores_notes()
 
 # ### Протокол проверки изоляции кабелей
 
-# In[43]:
+# In[45]:
 
 
 if "isolation" in station.conf and station.conf.isolation == True:
@@ -656,52 +617,42 @@ if "isolation" in station.conf and station.conf.isolation == True:
 
 # ## Инициализация кабелей в принципиальных схемах
 
-# In[44]:
-
-
-from src.out_connect.define_cables import (
-    set_cable_name,
-    get_cable_without_names,
-    get_cable_with_name_equal_direction,
-)
-
-
-# In[45]:
+# In[46]:
 
 
 cables_data = set_cable_name(station, cables_collection)
 
 
-# In[46]:
+# In[47]:
 
 
 get_cable_without_names(cables_data)
 
 
-# In[47]:
+# In[48]:
 
 
 get_cable_with_name_equal_direction(cables_data)
 
 
-# In[48]:
+# In[49]:
 
 
 def save_init_cables_name(cables_data):
+    file_name = (
+        f"{plot_dir}/Схемы/Загрузка инициализированных кабелей в чертеж Autocad.txt"
+    )
     safe_to_csv(
         pandas.DataFrame(cables_data),
-        f"{plot_dir}/Схемы/Загрузка инициализированных кабелей в чертеж Autocad.txt",
+        file_name,
         sep="\t",
         encoding="cp1251",
         index=False,
     )
-    shutil.copyfile(
-        f"{plot_dir}/Схемы/Загрузка инициализированных кабелей в чертеж Autocad.txt",
-        f"{output_dir}/Загрузка инициализированных кабелей в чертеж Autocad-{unixtime}.txt",
-    )
+    copy_file(file_name, output_dir, unixtime)
 
 
-# In[49]:
+# In[50]:
 
 
 save_init_cables_name(cables_data)
@@ -709,20 +660,20 @@ save_init_cables_name(cables_data)
 
 # ## Инициализация ссылок на листы
 
-# In[50]:
+# In[51]:
 
 
 from src.out_connect import define_reference
 
 
-# In[51]:
+# In[52]:
 
 
 init_reference = define_reference.init_reference(station, contact_data, clemmnic_data)
 pandas.DataFrame(init_reference)
 
 
-# In[52]:
+# In[53]:
 
 
 safe_to_csv(
@@ -738,7 +689,7 @@ safe_to_csv(
 
 # ### Длины и количество участнов
 
-# In[53]:
+# In[54]:
 
 
 total_length = total_length_journal(station, cables_collection)
@@ -753,7 +704,7 @@ safe_to_csv(
 pandas.DataFrame(total_length, index=["Длинна"]).T
 
 
-# In[54]:
+# In[55]:
 
 
 count_section = count_section_journal(cables_collection)
@@ -766,7 +717,7 @@ pandas.DataFrame(count_section, index=["Количество участков"])
 
 # ### Количество и деаметр отверстий в шкафах
 
-# In[55]:
+# In[56]:
 
 
 from src.holes import calc_count_hole
@@ -789,7 +740,7 @@ def count_cables_in_cabiten(cabinet):
     return result
 
 
-# In[56]:
+# In[57]:
 
 
 for cabinet in station.cabine_holes():
@@ -799,7 +750,7 @@ for cabinet in station.cabine_holes():
     print()
 
 
-# In[57]:
+# In[58]:
 
 
 for cabinet in station.cabine_holes():
@@ -812,16 +763,6 @@ for cabinet in station.cabine_holes():
 # ### Список устройств в шкафах
 
 # #### Вывод в Excel
-
-# In[58]:
-
-
-from src.out_connect.specification import (
-    used_devices_for_specification,
-    summary_equipment_schedule,
-    generate_equipment_config,
-)
-
 
 # In[59]:
 
@@ -850,12 +791,6 @@ if station.conf.cabines.generate_equipment_config:
 # In[60]:
 
 
-from src.out_connect.specification import (
-    spds_specification,
-    spds_specification_excel,
-    spds_specification_array,
-)
-
 spds_array = spds_specification_array(
     station, cables_collection, clemmnic_data, device_data.get_device_for_spec
 )
@@ -866,11 +801,9 @@ spds_array = spds_specification_array(
 # In[61]:
 
 
-spds_specification(spds_array, f"{plot_dir}/Спецификация к разделу.lsp")
-_ = shutil.copyfile(
-    f"{plot_dir}/Спецификация к разделу.lsp",
-    f"{output_dir}/Спецификация к разделу-{unixtime}.lsp",
-)
+file_name = f"{plot_dir}/Спецификация к разделу.lsp"
+spds_specification(spds_array, file_name, station.conf.specification)
+copy_file(file_name, output_dir, unixtime)
 
 
 # #### Вывод в Excel
@@ -878,13 +811,11 @@ _ = shutil.copyfile(
 # In[62]:
 
 
-spds_specification_excel(
-    spds_array, f"{plot_dir}/Спецификация к разделу.xlsx", copy_to_csv=True
-)
-_ = shutil.copyfile(
-    f"{plot_dir}/Спецификация к разделу.csv",
-    f"{output_dir}/Спецификация к разделу-{unixtime}.csv",
-)
+file_name_xlsx = f"{plot_dir}/Спецификация к разделу.xlsx"
+spds_specification_excel(spds_array, file_name_xlsx, copy_to_csv=True)
+
+file_name = f"{plot_dir}/Спецификация к разделу.csv"
+copy_file(file_name, output_dir, unixtime)
 
 
 # ## Печать графа объединяющего шкафы и кабель-каналы
@@ -899,21 +830,14 @@ from src.graph_view import GraphView
 # In[64]:
 
 
-import os.path
-
-if os.path.exists(station.CABINE_FILE):
+if file_exist(station.CABINE_FILE):
     closet_graph = ClosetsGraph(station)
     cable_chanel = GraphView(closet_graph.cabine).plot(
         closet_graph.boxes, closet_graph.closet_graph, (20, 150)
     )
-
-    AutocadElements(cable_chanel).save(
-        f"{plot_dir}/Схемы/Шкафы/Схема графа кабель-каналов.lsp"
-    )
-    out = shutil.copyfile(
-        f"{plot_dir}/Схемы/Шкафы/Схема графа кабель-каналов.lsp",
-        f"{output_dir}/Схема графа кабель-каналов-{unixtime}.lsp",
-    )
+    file_name = f"{plot_dir}/Схемы/Шкафы/Схема графа кабель-каналов.lsp"
+    AutocadElements(cable_chanel).save(file_name)
+    copy_file(file_name, output_dir, unixtime)
 
 
 # # Отладка

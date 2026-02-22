@@ -1,0 +1,48 @@
+total_length:
+    start_possition: {X: 0, Y: 0}
+    rows_in_first_sheet: 15
+    rows_in_other_sheet: 20
+    delta: 5
+    k_size_font: 0.32
+    table_width: [50, 50, 25, 60]
+    text_align: ["c", "c", "c", "c"]
+    header: []
+    height: 10
+    text_size: 4
+    plot_border: True
+    add_blank_line: False
+cable_journal_f7_1:
+    start_possition: {X: 0, Y: 0}
+    rows_in_first_sheet: 29
+    rows_in_other_sheet: 29
+    delta: 25
+    k_size_font: 0.54
+    table_width: [25, 70, 70, 55, 35, 25, 15, 35, 25, 15, 25]
+    text_align: ["c", "l", "l", "l", "c", "c", "c", "c", "c", "c", "c"]
+    header: []
+    height: 8
+    text_size: 2.5
+    plot_border: False
+    add_blank_line: False
+wires_journal:
+    print: True
+    start_possition: {X: 0, Y: 0}
+    rows_in_first_sheet: 29
+    rows_in_other_sheet: 29
+    delta: 25
+    k_size_font: 0.54
+    table_width: [25, 35, 15, 15, 70, 25]
+    text_align: ["c", "c", "c", "c", "l"]
+    header: []
+    height: 8
+    text_size: 2.5
+    plot_border: True
+    add_blank_line: False
+cable_links:
+    print: True
+    start_possition: {X: 0, Y: 0}
+    step_cables: 10
+    step_closets: 10
+    min_width_closet: 60
+    height_closet: 40
+    length_cable: 40

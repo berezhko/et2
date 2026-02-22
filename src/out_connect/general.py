@@ -12,9 +12,6 @@ from src.elements import Mtext
 from src.elements import AutocadElements as AutocadElements
 
 
-TableParams = namedtuple('TableParams', 'height rows_count width align')
-
-
 def make_cabinet_table(station):
     result = []
     for i, row in station.get_cabinet_list().items():
@@ -71,51 +68,12 @@ def device_list(station, contact_data, device_data):
     return result
 
 
-def get_something(df, x, y, table_param, header=True):
-    start_possition = {"X": x, "Y": y}
-    ksize_font = len(list(df.columns)) * [(4 / table_param.height) * 3.2 / 5]
-    if header:
-        header_table = [list(df.columns)]
-    else:
-        header_table = None
-    data_numpy = df.to_numpy()
-
-    pl.HEIGHT = table_param.height
-    result = pl.get_split_table(
-        fit_data(
-            data_numpy,
-            table_param.width,
-            ksize_font=ksize_font,
-            delim=" ",
-            add_blank_line=False
-        ),
-        header_table,
-        table_param.width,
-        table_param.rows_count,
-        table_param.rows_count,
-        start_possition,
-        delta=5,
-        align=table_param.align,
-    )
-    pl.HEIGHT = 4
-    return result
-
-
-def print_work_scheme(station, file_name, start_x, start_y):
+def print_work_scheme(station, file_name):
+    config = station.conf.general_data.work_scheme
+    start_x = config.start_possition.X
+    start_y = config.start_possition.Y
     work_settings_file = station.settings_file
-    work_scheme_table = TableParams(
-        6, 24,
-        [15, 140, 30],
-        ["c", "l", "l"],
-    )
-    link_scheme_table = TableParams(
-        6, 37,
-        [60, 95, 30],
-        ["l", "l", "l"],
-    )
-    sheet_width = 395
-
-    work_scheme = get_something(
+    work_scheme = pl.print_work_scheme(
         pandas.read_excel(
             work_settings_file,
             sheet_name='Рабочие чертежи',
@@ -123,24 +81,29 @@ def print_work_scheme(station, file_name, start_x, start_y):
         ), 
         start_x,
         start_y,
-        work_scheme_table,
+        config.work_scheme,
     )
-
-    link_scheme = get_something(
+    link_scheme = pl.print_work_scheme(
         pandas.read_excel(
             work_settings_file,
             sheet_name='Ссылочные и прилагаемые',
             keep_default_na=False,
         ), 
-        start_x + (sheet_width - sum(link_scheme_table.width)),
+        start_x + (config.sheet_width - sum(config.list_scheme.width)),
         start_y,
-        link_scheme_table,
+        config.list_scheme,
     )
-
     AutocadElements(work_scheme + link_scheme).save(file_name)
 
 
-def print_schemes_name(station, file_name, start_x, start_y, offset_y=0):
+# ToDo в настоящий момент данная функция работает некорректно
+# Появился блок "Лист" с атрибутом ЛИСТ, по данному блоку нужо
+# вставлять надпись, а также расчитывать количество листов.
+def print_schemes_name(station, file_name):
+    config = station.conf.general_data.schemes_name
+    start_x = config.start_possition.X
+    start_y = config.start_possition.Y
+    offset_y = config.offset_y if 'offset_y' in config else 0
     lisp = []
     for _, row in pandas.read_excel(
             station.settings_file,
@@ -149,9 +112,55 @@ def print_schemes_name(station, file_name, start_x, start_y, offset_y=0):
         ).iterrows():
         x = start_x
         y = start_y * (int(row['Лист']) - offset_y)
-        p1 = (x - 120, y + 15)
-        p2 = (x - 50, y)
+        # |(-120, 15)           |   
+        # |             (-50, 0)| - Координы рамки в которую встанет имя листа
         lisp.append(
-            Mtext(p1, p2, row['Наименование'], 3, "_MC")
+            Mtext((x - 120, y + 15), (x - 50, y), row['Наименование'], config.font_size, "_MC")
         )
     AutocadElements(lisp).save(file_name)
+
+
+def save_cabinet_table(station, file_name):
+    config = station.conf.general_data.cabine_list
+    columns = ["Номер", "Обозначение", "Наименование", "Примечание"]
+    table_width = config.table_width
+    header_table = [columns]
+    rows_in_table = config.rows_in_table
+    start_possition = config.start_possition
+    print_table1 = pandas.DataFrame(make_cabinet_table(station)).to_numpy()
+
+    height = pl.HEIGHT
+    pl.HEIGHT = config.height
+    pl.plot_split_table(
+        print_table1,
+        header_table,
+        table_width,
+        rows_in_table,
+        rows_in_table,
+        start_possition,
+        file_name,
+        delta=config.delta,
+        align=config.text_align,
+    )
+    pl.HEIGHT = height
+
+
+def plot_devices(station, data_pandas, file_name):
+    config = station.conf.general_data.devices_list
+    pl.plot_split_table(
+        fit_data(
+            data_pandas.to_numpy(),
+            config.table_width,
+            ksize_font=len(config.table_width) * [config.k_size_font],
+            delim=" ",
+            add_blank_line=False,
+        ),
+        [list(data_pandas.columns)],
+        config.table_width,
+        config.rows_in_first_sheet,
+        config.rows_in_other_sheet,
+        config.start_possition,
+        file_name,
+        delta=config.delta,
+        align=config.text_align,
+    )

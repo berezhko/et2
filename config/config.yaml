@@ -11,6 +11,15 @@ START_NUMBER: 100
 CALC_LENGTH: false
 READ_LENGTH_FROM_FILE: false
 
+general_data:
+    from_file: "${project_dir}/config/config_general_data.yaml"
+
+cable_journal:
+    from_file: "${project_dir}/config/config_cable_journal.yaml"
+
+specification:
+    from_file: "${project_dir}/config/config_specification.yaml"
+
 cabines:
   generate_equipment_config: false
   reverse_wires_connection: false

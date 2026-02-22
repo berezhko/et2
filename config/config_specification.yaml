@@ -1,0 +1,9 @@
+start_possition: {X: 0, Y: 0}
+rows_in_first_sheet: 24
+rows_in_other_sheet: 28
+table_width: [20, 130, 60, 35, 45, 20, 20, 25, 40]
+k_size_font: 0.323
+text_align: ['c', 'l', 'l', 'c', 'c', 'c', 'c', 'c', 'c']
+header: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+delta: 25
+height: 8

@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from src.station.misc import get_long_cabinet_name
 from src.exception import DistanceZero
 
@@ -90,7 +94,7 @@ def base_method_for_journal(f, cables_collection):
     for cable in cables_collection.cables():
         section, type_cab = cables_collection.section(cable)
         count_wires_in_cab = cables_collection.count_wires(cable)
-        key = type_cab + ' ' + count_wires_in_cab + 'x' + str(section)
+        key = (type_cab, count_wires_in_cab + 'x' + str(section))
         if key not in result:
             result[key] = 0
         result[key] = result[key] + f(cable)
@@ -121,22 +125,54 @@ def get_distance(cable, station, cables_collection):
 
 
 def shrink_long_string(data, field=1, length=24):
+    "Образать все строки в столбце до заданной длинны символов"
     for row in data:
         if len(row[field]) > length:
             row[field] = f"{row[field][:length-3]}..."
     return data
 
 
+def get_table_cable_journal_f7_1(cable_journal):
+    result = []
+    for cable in cable_journal:
+        result.append([
+            cable['Наименование кабеля'],
+            cable['Первая точка'],
+            cable['Вторая точка'],
+            'По сущ. конструкциям',
+            cable['Тип'],
+            cable['Жилы'],
+            cable['Длинна'],
+            '',
+            '',
+            '',
+            cable['Примечание'],
+        ])
+    return result
+
+
+def get_table_total_length(station, cables_collection):
+    _result = {}
+    for type_cable, length in total_length_journal(station, cables_collection).items():
+        _result[type_cable] = str(length)
+    result = []
+    # Сортировка: 1 - Имя кабеля, 2 - Сечение жилы, 3 - Кол-во жил
+    for type_cable in sorted(_result, key=lambda x: (x[0], float(x[1].split('x')[1]), int(x[1].split('x')[0]))):
+        result.append([type_cable[0], type_cable[1], _result[tuple(type_cable)], ''])
+    return result
+
+
 class CableLinks():
-    def __init__(self, station, cables_collection):
+    def __init__(self, station, cables_collection, conf):
         self._station = station
         self._cables_collection = cables_collection
-        self.STEP_CABLES = 10
-        self.STEP_CLOSETS = 10
-        self.MIN_WIDTH_CLOSET = 60
-        self.HEIGHT_CLOSET = 40
-        self.LENGTH_CABLE = 40
-        self.OFFSET_X = 400
+        self.STEP_CABLES = conf.step_cables
+        self.STEP_CLOSETS = conf.step_closets
+        self.MIN_WIDTH_CLOSET = conf.min_width_closet
+        self.HEIGHT_CLOSET = conf.height_closet
+        self.LENGTH_CABLE = conf.length_cable
+        self.OFFSET_X = conf.start_possition.X
+        self.OFFSET_Y = conf.start_possition.Y
 
     # data = self._cables_collection.make_list_cables_in_closet()
     def remove_special_closet(self, data, exclude_closets):
@@ -322,32 +358,34 @@ class CableLinks():
     def plot_cable_link(self):
         result = []
         offset_x = self.OFFSET_X
-        offset_y = 150
+        offset_y = self.OFFSET_Y
         main_closets = self._station.cabine_for_cable_links()
         
         for include_closets in main_closets:
             for main_closet in include_closets:
                 closets = self.generate_closets_list(main_closet)
-                
+
                 closet_location = self.calc_closet_location(closets, offset_x, offset_y)
+                logger.info(f'Положение шкафов {closet_location}')
                 cable_location = self.calc_cable_location(closets, offset_x)
                 y = self.get_y_position_for_cable(closet_location)
                 result = result + self.plot_closets_with_cables(closet_location, cable_location, y)
-                
+
                 result = result + self.plot_main_frame(closet_location, main_closet, y)
                 offset_x = self.get_last_possition_closet(closet_location) + 60
             offset_x = self.OFFSET_X
             offset_y = offset_y + 140
-        
+
         #==============================================
-        
+
         offset_x = self.OFFSET_X
-        offset_y = 0
+        offset_y = self.OFFSET_Y
         exclude_closets = [closet for l in main_closets for closet in l]
-        
+
         closets = self.remove_special_closet(self._cables_collection.make_list_cables_in_closet(), exclude_closets)
-        
+
         closet_location = self.calc_closet_location(closets, offset_x, offset_y)
+        logger.info(f'Положение шкафов {closet_location}')
         cable_location = self.calc_cable_location(closets, offset_x)
         y = self.get_y_position_for_cable(closet_location)
         result = result + self.plot_closets_with_cables(closet_location, cable_location, y)

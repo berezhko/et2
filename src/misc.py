@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import hashlib
+import shutil
 import pandas as pd
 import logging
 
@@ -101,3 +102,9 @@ def my_str(s):
     if result != str(s):
         logger.info(f'my_str: {result} != {str(s)}')
     return result
+
+
+def copy_file(file_name, output_dir, unixtime):
+    session_file = f'{Path(file_name).stem}-{unixtime}{Path(file_name).suffix}'
+    logger.info(f'Копируем файл: {file_name} в: {Path(output_dir)}/{session_file}')
+    shutil.copyfile(file_name, f'{Path(output_dir)}/{session_file}')
